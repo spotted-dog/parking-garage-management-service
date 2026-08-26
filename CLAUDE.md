@@ -23,7 +23,7 @@ swift test
 
 # Run a single test suite or test case (Swift Testing)
 swift test --filter ParkingGarageManagementServiceTests
-swift test --filter ParkingGarageManagementServiceTests/createTodo
+swift test --filter ParkingGarageManagementServiceTests/createGarageWithMultipleFloors
 
 # Run the full stack (app + Postgres) via Docker Compose
 docker compose up db      # start Postgres only
@@ -64,18 +64,16 @@ Data passed from frontend to the backend and vis-versa is done via JSON.
 
 ### Current Implementation
 
-The codebase is currently the stock Vapor scaffold: only a placeholder `Todo` resource exists (`Sources/ParkingGarageManagementService/Models/Todo.swift`, `DTOs/TodoDTO.swift`, `Migrations/CreateTodo.swift`, `Controllers/TodoController.swift`). None of the domain models in "Data Models" below (Garage, Floor, Space, Car, Reservation) are implemented yet — treat that section as the target design, not existing code.
+The Vapor template's placeholder `Todo` resource has been removed. `Garage` (with nested `Floor` and `Space`) is the first real domain resource and shows the per-resource pattern to follow for the remaining models (Car, Reservation):
 
-The `Todo` resource shows the per-resource pattern to follow for new domain models:
-
-- **Model** (`Models/`): a `final class` conforming to `Model, @unchecked Sendable`, using `@ID`/`@Field`/`@Parent`/`@Children` property wrappers, with a `toDTO()` conversion method.
-- **DTO** (`DTOs/`): a `struct` conforming to `Content` with optional properties and `toModel()`/`toDTO()` conversions, used for request/response bodies instead of exposing the Fluent model directly.
-- **Migration** (`Migrations/`): an `AsyncMigration` with `prepare`/`revert`, registered in `configure.swift` via `app.migrations.add(...)`.
+- **Model** (`Models/`): a `final class` conforming to `Model, @unchecked Sendable`, using `@ID`/`@Field`/`@Parent`/`@Children` property wrappers, with a `toDTO(...)` conversion method (parent models take the already-converted child DTOs as arguments rather than eager-loading relations for the conversion).
+- **DTO** (`DTOs/`): a `struct` conforming to `Content`, one per model plus request-only DTOs for endpoints that need a different shape (e.g. `CreateGarageRequestDTO`/`CreateFloorRequestDTO` accept only what the caller specifies — counts, not generated identifiers).
+- **Migration** (`Migrations/`): an `AsyncMigration` with `prepare`/`revert`, registered in `configure.swift` via `app.migrations.add(...)`. Child-table migrations that reference a parent (e.g. `CreateFloor` referencing `garages`) must be added after their parent's migration.
 - **Controller** (`Controllers/`): a `RouteCollection` grouping routes under a path and registering handlers marked `@Sendable`, registered in `routes.swift` via `app.register(collection:)`.
 
-Tests (`Tests/ParkingGarageManagementServiceTests/`) use Swift Testing (`@Suite`/`@Test`) and `VaporTesting`, spinning up a real `Application` per test via a shared `withApp` helper that runs `autoMigrate()`/`autoRevert()` against the configured test database — there is no mocking of Fluent/the database.
+Tests (`Tests/ParkingGarageManagementServiceTests/`) use Swift Testing (`@Suite`/`@Test`) and `VaporTesting`, spinning up a real `Application` per test via a shared `withApp` helper that runs `autoMigrate()`/`autoRevert()` against the configured test database — there is no mocking of Fluent/the database. All tests belong to the single `@Suite("App Tests with DB", .serialized)` declared in `ParkingGarageManagementServiceTests.swift`; new resources add their `@Test`s in their own file via `extension ParkingGarageManagementServiceTests { ... }` (see `GarageControllerTests.swift`) rather than declaring a new `@Suite`. `.serialized` only serializes tests within one suite — a second suite runs concurrently with the first and races Fluent migrations against the shared real database.
 
-`configure.swift` does not currently read `DATABASE_SCHEMA` or set a Postgres search_path — the `garage_manager` schema created by `sql/database_setup.sql` is not yet wired into the Fluent Postgres connection config in code.
+`configure.swift` sets `SQLPostgresConfiguration.searchPath` from `DATABASE_SCHEMA` so Fluent creates tables in that schema (e.g. `garage_manager`, see `sql/database_setup.sql`) instead of `public`, which the deployed database roles are not granted access to.
 
 ### Data Models
 
