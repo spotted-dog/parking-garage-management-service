@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.0.2] - 2026-08-26
+
+Added UI to create a garage.
+
+### Added
+
+- `GET /garages/new`: a Leaf-rendered page for creating a garage. The form takes the garage
+  name and a dynamic per-floor list of space counts (add/remove floors), and submits to the
+  existing `POST /garages` API, displaying the assigned floor/space numbers or the server's
+  error message.
+
 ## [0.0.1] - 2026-08-26
 
 Initial garage creation.
