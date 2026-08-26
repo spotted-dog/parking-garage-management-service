@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create Garage</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f5f6f8;
+      --surface: #ffffff;
+      --border: #d7dbe0;
+      --text: #1c1f24;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --danger: #b91c1c;
+      --danger-bg: #fef2f2;
+      --success-bg: #f0fdf4;
+      --success-border: #bbf7d0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 2rem 1rem 4rem;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    main {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+
+    p.subtitle {
+      color: var(--muted);
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+    }
+
+    form {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.35rem;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 0.5rem 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    input:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .field {
+      margin-bottom: 1.25rem;
+    }
+
+    .field-hint {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-top: 0.35rem;
+    }
+
+    fieldset {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 0 0 1.25rem;
+    }
+
+    legend {
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 0 0.4rem;
+    }
+
+    .floor-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .floor-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .floor-row .floor-label {
+      flex: 0 0 auto;
+      min-width: 4.5rem;
+      font-weight: 600;
+      padding-bottom: 0.55rem;
+      color: var(--muted);
+    }
+
+    .floor-row .field {
+      flex: 1 1 auto;
+      margin-bottom: 0;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      padding: 0.5rem 0.85rem;
+    }
+
+    button:hover {
+      background: var(--bg);
+    }
+
+    button.remove-floor {
+      color: var(--danger);
+      border-color: transparent;
+      padding: 0.5rem 0.6rem;
+    }
+
+    button.remove-floor:disabled {
+      color: var(--muted);
+      cursor: not-allowed;
+    }
+
+    button#add-floor {
+      width: 100%;
+      margin-top: 0.25rem;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    button[type="submit"] {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      padding: 0.6rem 1.25rem;
+    }
+
+    button[type="submit"]:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    button[type="submit"]:disabled {
+      background: var(--muted);
+      border-color: var(--muted);
+      cursor: not-allowed;
+    }
+
+    #result {
+      margin-top: 1.5rem;
+    }
+
+    .message {
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .message.error {
+      background: var(--danger-bg);
+      border: 1px solid #fecaca;
+      color: var(--danger);
+    }
+
+    .message.success {
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+    }
+
+    .message.success h2 {
+      margin-top: 0;
+      font-size: 1.05rem;
+    }
+
+    .floor-summary {
+      margin: 0.5rem 0 0;
+      padding-left: 1.1rem;
+    }
+
+    .floor-summary li {
+      margin-bottom: 0.35rem;
+    }
+
+    .space-numbers {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Create a Garage</h1>
+    <p class="subtitle">Set the garage name and, for each floor, how many spaces it has. Floor and space numbers are assigned automatically.</p>
+
+    <form id="create-garage-form">
+      <div class="field">
+        <label for="garage-name">Garage name</label>
+        <input type="text" id="garage-name" name="name" required>
+      </div>
+
+      <fieldset>
+        <legend>Floors</legend>
+        <div id="floors"></div>
+        <button type="button" id="add-floor">+ Add floor</button>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit" id="submit-button">Create Garage</button>
+      </div>
+    </form>
+
+    <div id="result"></div>
+  </main>
+
+  <script>
+    const floorsContainer = document.getElementById('floors');
+    const addFloorButton = document.getElementById('add-floor');
+    const form = document.getElementById('create-garage-form');
+    const submitButton = document.getElementById('submit-button');
+    const resultContainer = document.getElementById('result');
+
+    function renumberFloors() {
+      const rows = floorsContainer.querySelectorAll('.floor-row');
+      rows.forEach((row, index) => {
+        row.querySelector('.floor-label').textContent = 'Floor ' + (index + 1);
+        row.querySelector('.remove-floor').disabled = rows.length === 1;
+      });
+    }
+
+    function addFloorRow() {
+      const row = document.createElement('div');
+      row.className = 'floor-row';
+      row.innerHTML = `
+        <span class="floor-label">Floor</span>
+        <div class="field">
+          <label>Number of spaces</label>
+          <input type="number" class="space-count" min="1" step="1" value="10" required>
+        </div>
+        <button type="button" class="remove-floor" aria-label="Remove floor">&times;</button>
+      `;
+      row.querySelector('.remove-floor').addEventListener('click', () => {
+        if (floorsContainer.querySelectorAll('.floor-row').length > 1) {
+          row.remove();
+          renumberFloors();
+        }
+      });
+      floorsContainer.appendChild(row);
+      renumberFloors();
+    }
+
+    addFloorButton.addEventListener('click', addFloorRow);
+    addFloorRow();
+
+    function renderSuccess(garage) {
+      const floorItems = garage.floors.map(floor => {
+        const spaceNumbers = floor.parkingSpaces.map(space => space.spaceNumber).join(', ');
+        return `<li><strong>${floor.floorNumber}</strong> - ${floor.parkingSpaces.length} spaces
+          <div class="space-numbers">${spaceNumbers}</div></li>`;
+      }).join('');
+
+      resultContainer.innerHTML = `
+        <div class="message success">
+          <h2>Garage created</h2>
+          <p><strong>${garage.name}</strong> (id: ${garage.id})</p>
+          <ul class="floor-summary">${floorItems}</ul>
+        </div>
+      `;
+    }
+
+    function renderError(message) {
+      resultContainer.innerHTML = `<div class="message error">${message}</div>`;
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      resultContainer.innerHTML = '';
+
+      const name = document.getElementById('garage-name').value.trim();
+      const floors = Array.from(floorsContainer.querySelectorAll('.space-count')).map(input => ({
+        numberOfSpaces: parseInt(input.value, 10)
+      }));
+
+      submitButton.disabled = true;
+      submitButton.textContent = 'Creating...';
+
+      try {
+        const response = await fetch('/garages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, floors })
+        });
+
+        const body = await response.json();
+
+        if (!response.ok) {
+          renderError(body.reason || 'Failed to create garage.');
+          return;
+        }
+
+        renderSuccess(body);
+        form.reset();
+        floorsContainer.innerHTML = '';
+        addFloorRow();
+      } catch (error) {
+        renderError('Could not reach the server. Please try again.');
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Create Garage';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -7,6 +7,12 @@ struct GarageController: RouteCollection {
 
         garages.get(use: self.index)
         garages.post(use: self.create)
+        garages.get("new", use: self.newForm)
+    }
+
+    @Sendable
+    func newForm(req: Request) async throws -> View {
+        try await req.view.render("CreateGarage")
     }
 
     @Sendable

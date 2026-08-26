@@ -74,6 +74,17 @@ extension ParkingGarageManagementServiceTests {
         }
     }
 
+    @Test("The new-garage form page renders")
+    func newFormRenders() async throws {
+        try await withApp { app in
+            try await app.testing().test(.GET, "garages/new", afterResponse: { res async in
+                #expect(res.status == .ok)
+                #expect(res.headers.contentType?.description.contains("text/html") == true)
+                #expect(res.body.string.contains("Create a Garage"))
+            })
+        }
+    }
+
     @Test("Listing garages returns the persisted floor and space hierarchy")
     func indexReturnsPersistedGarages() async throws {
         try await withApp { app in
